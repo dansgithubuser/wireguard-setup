@@ -11,14 +11,8 @@ import sys
 
 #===== args =====#
 parser = argparse.ArgumentParser()
-parser.add_argument('direction', choices=['up', 'down'])
-parser.add_argument('server_endpoint', nargs='?', help='hostname:port')
-parser.add_argument('server_public_key', nargs='?')
-parser.add_argument('--interface-name', '-i', default='wg0')
-parser.add_argument('--local-address', '-l', default='192.168.3.1/24')
-parser.add_argument('--listen-port', '-p', default='51820')
-parser.add_argument('--private-key-path', '--priv-path', default=os.path.expanduser('~/.wg/priv_key'))
-parser.add_argument('--allowed-ips', '-a', default='0.0.0.0/0')
+parser.add_argument('direction', choices=['up', 'down'], default='up')
+parser.add_argument('config_path', help='containing the contents of docker-server.py --show-peer, with any desired edits (e.g. IP -> hostname)')
 args = parser.parse_args()
 
 #===== consts =====#
@@ -38,6 +32,9 @@ def section(s=None):
 
 def timestamp():
     return '{:%Y-%m-%d %H:%M:%S.%f}'.format(datetime.datetime.now())
+
+def timestamp_file():
+    return '{:%Y-%m-%d_%H-%M-%S}'.format(datetime.datetime.now())
 
 def invoke(
     *args,
@@ -81,20 +78,11 @@ def invoke(
         return result
 
 #===== main =====#
+etc_config_path = '/etc/wireguard/' + os.path.basename(args.config_path)
 if args.direction == 'up':
-    p = invoke(f'ip link show {args.interface_name}', check=False)
-    if p.returncode:
-        invoke(f'sudo ip link add dev {args.interface_name} type wireguard')
-        invoke(f'sudo ip address add dev wg0 {args.local_address}')
-    invoke('sudo', 'wg',
-        'set', args.interface_name,
-        'listen-port', args.listen_port,
-        'private-key', args.private_key_path,
-        'peer', args.server_public_key,
-        'allowed-ips', args.allowed_ips,
-        'endpoint', args.server_endpoint,
-    )
-    invoke(f'sudo ip link set up dev {args.interface_name}')
-elif args.direction == 'down':
-    invoke(f'sudo ip link set down dev {args.interface_name}')
-    invoke(f'sudo ip link delete {args.interface_name}')
+    invoke(f'sudo cp {args.config_path} {etc_config_path}')
+try:
+    invoke(f'sudo wg-quick {args.direction} {etc_config_path}')
+except Exception as e:
+    print('Is resolvconf missing? For Ubuntu 22, try `sudo ln -s /usr/bin/resolvectl /usr/local/bin/resolvconf`')
+    raise e
