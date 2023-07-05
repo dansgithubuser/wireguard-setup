@@ -13,6 +13,7 @@ import sys
 parser = argparse.ArgumentParser()
 parser.add_argument('--setup', metavar='peer_names', nargs='*')
 parser.add_argument('--show-peer', metavar='peer_name')
+parser.add_argument('--rotate-peer', metavar='peer_name')
 args = parser.parse_args()
 
 #===== consts =====#
@@ -101,3 +102,8 @@ if args.setup:
 if args.show_peer:
     peer_name = args.show_peer
     invoke(f'docker exec wireguard cat /config/peer_{peer_name}/peer_{peer_name}.conf')
+
+if args.rotate_peer:
+    peer_name = args.rotate_peer
+    invoke(f'docker exec wireguard rm -rf /config/peer_{peer_name}/peer_{peer_name} /config/wg0.conf')
+    invoke('docker restart wireguard')
