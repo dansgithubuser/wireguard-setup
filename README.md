@@ -14,5 +14,5 @@ Endpoint = ...:51820
 AllowedIPs = 0.0.0.0/0, ::/0
 ```
 
-The `Interface.Address` needs a `/24` to ensure client can access other IPs normally.
-The `Peer.Endpoint` should be changed to a URL if the IP address cannot be guaranteed.
+`Peer.AllowedIPs` should be changed to `10.13.13.0/24` to ensure client can access other IPs normally.
+`Peer.Endpoint` should be changed to a URL if the IP address cannot be guaranteed.
