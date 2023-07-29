@@ -83,7 +83,7 @@ if len(sys.argv) == 1:
     parser.print_help()
     sys.exit()
 
-if args.setup:
+if args.setup != None:
     peer_names = args.setup
     invoke('docker pull linuxserver/wireguard:latest')
     invoke(  # https://github.com/linuxserver/docker-wireguard#docker-cli-click-here-for-more-info
