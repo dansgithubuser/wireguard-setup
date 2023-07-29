@@ -95,6 +95,7 @@ if args.setup:
         '-e', 'PGID=1000',  # corresponds to `id $user` gid
         '-p', '51820:51820/udp',
         '-e', 'PEERS='+','.join(peer_names),
+        '-v', f'{DIR}/config:/config',
         '--restart=always',
         'linuxserver/wireguard',
     )
